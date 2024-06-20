@@ -9,6 +9,8 @@ import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
+import java.util.Date;
+
 public class NotifCatcher extends NotificationListenerService {
 
 
@@ -52,6 +54,7 @@ public class NotifCatcher extends NotificationListenerService {
         try {  text = extras.getCharSequence("android.text").toString();  }catch (Exception e){}
 
 
+        new SoundLogic().onCatch(title,text,pack,new Date());
         new String();
 
 
@@ -62,4 +65,7 @@ public class NotifCatcher extends NotificationListenerService {
 //        Log.i("Msg","Notification Removed");
     }
 
+    interface NotifCatcherImpl {
+        void onCatch(String title, String text, String pack, Date date);
+    }
 }
