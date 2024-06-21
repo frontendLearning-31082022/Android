@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class TestNotification {
+    static int id=100;
 
     public static void showNotification(String title, String message, String pack, PendingIntent intentOfNotif,Context context ) {
 
@@ -51,6 +52,8 @@ public class TestNotification {
                 .setContentTitle(title) // title for notification
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setContentText(messageForNotif)// message for notification
+                .setAutoCancel(true)
+                .setTimeoutAfter(120000)
 //                .setContentIntent(resultPendingIntent)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(messageForNotif));
 
@@ -58,7 +61,7 @@ public class TestNotification {
         PendingIntent pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         mBuilder.setContentIntent(pi);
 
-        mNotificationManager.notify(2, mBuilder.build());
+        mNotificationManager.notify(id++, mBuilder.build());
 
 
 

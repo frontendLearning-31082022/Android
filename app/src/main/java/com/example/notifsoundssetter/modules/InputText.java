@@ -11,6 +11,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class InputText {
+    Map data;
+    public InputText(Map data) {
+        this.data=data;
+        if (data==null)this.data=new HashMap();
+    }
 
     void show(Context context, String title, Consumer<Object> onSumbit) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -24,7 +29,7 @@ public class InputText {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Map data = new HashMap();
+
                 data.put("text", input.getText().toString());
                 onSumbit.accept(data);
             }
@@ -38,4 +43,31 @@ public class InputText {
 
         builder.show();
     }
+
+    void show_digit(Context context, String title, Consumer<Object> onSumbit) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(title);
+
+        EditText input = new EditText(context);
+        input.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        builder.setView(input);
+
+// Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                data.put("text", Double.parseDouble(String.valueOf(input.getText())));
+                onSumbit.accept(data);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
 }

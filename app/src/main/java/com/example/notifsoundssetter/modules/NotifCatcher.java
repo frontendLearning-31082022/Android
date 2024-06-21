@@ -1,13 +1,20 @@
 package com.example.notifsoundssetter.modules;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.UserHandle;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
+
+import com.example.notifsoundssetter.MainActivity;
 
 import java.util.Date;
 
@@ -20,6 +27,18 @@ public class NotifCatcher extends NotificationListenerService {
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
+
+
+//        IntentFilter filter = new IntentFilter();
+//        filter.addAction(Notification.NOTIFICATION);
+//        registerReceiver(new BroadcastReceiver() {
+//            @Override
+//            public void onReceive(Context context, Intent intent) {
+//                NotificationManager manager = context.getSystemService(NotificationManager.class);
+//                final StatusBarNotification[] notifs = manager.getActiveNotifications();
+//                new String();
+//            }
+//        },  new IntentFilter());
     }
 
     @Override
@@ -31,6 +50,7 @@ public class NotifCatcher extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
+        MainActivity.activeNotifsList.posted(sbn);
         try {notifMsgCatch(sbn);
         }catch (Exception f){f.printStackTrace();}
     }
@@ -62,10 +82,17 @@ public class NotifCatcher extends NotificationListenerService {
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
+        MainActivity.activeNotifsList.removed(sbn);
+        new String();
 //        Log.i("Msg","Notification Removed");
     }
 
     interface NotifCatcherImpl {
         void onCatch(String title, String text, String pack, Date date);
+    }
+
+    @Override
+    public void onListenerConnected() {
+//        new SchedruleCheker(MainActivity.mainContext,this.activeNotifsList).check();
     }
 }

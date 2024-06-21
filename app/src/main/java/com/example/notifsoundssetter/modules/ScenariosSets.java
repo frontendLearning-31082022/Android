@@ -1,5 +1,7 @@
 package com.example.notifsoundssetter.modules;
 
+import android.content.Context;
+
 import com.example.notifsoundssetter.MainActivity;
 
 import org.json.JSONException;
@@ -63,7 +65,32 @@ public class ScenariosSets {
                     .choose(context, "Выберите звук",writeConf);
         };
 
-        new InputText().show(context,"Введите текст",soundChoose);
+        new InputText(null).show(context,"Введите текст",soundChoose);
 
+    }
+
+    public static void schedruleSound(Context context) {
+        Consumer<Object> writeConf = x -> {
+            Map data= (Map) x;
+            data.put("mins_repeat",data.get("text"));
+
+            try {
+                new ConfFile( ConfFile.Types.SchedruleSound).writeConf(data);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+
+        };
+
+        Consumer<Object> inputMins = x -> {
+            Map data= (Map) x;
+            data.put("text_schedrule",data.get("text"));
+
+            new InputText(data).show_digit(context,"Введите минуты повторения",writeConf);
+        };
+
+        new InputText(null).show(context,"Введите текст",inputMins);
     }
 }

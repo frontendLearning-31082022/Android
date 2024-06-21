@@ -45,4 +45,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonSoundForApp" />
 
+    <Button
+        android:id="@+id/buttonSchedruleSound"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:text="По расписанию повтор напоминание"
+        app:layout_constraintTop_toBottomOf="@+id/buttonSoundByText"
+        tools:layout_editor_absoluteX="16dp" />
+
+    <Button
+        android:id="@+id/buttonOpenConfsFolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="36dp"
+        android:layout_marginTop="56dp"
+        android:text="Открыть папку конфигураций"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonSchedruleSound" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
