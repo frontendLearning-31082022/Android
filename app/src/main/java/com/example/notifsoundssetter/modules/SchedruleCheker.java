@@ -41,9 +41,9 @@ public class SchedruleCheker {
             @Override
             public void onReceive(Context c, Intent i) {
                 double minss = Double.parseDouble(i.getIdentifier());
-                try{
+                try {
                     pass.check(minss);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 setNewShedule(minss);
@@ -60,11 +60,12 @@ public class SchedruleCheker {
     void setNewShedule(double mins) {
 //        onStopBroadcastTimer= ()->{check(mins);  return null;};
 //        Context context1=new Activity();
+
         Intent storeBoxIntent = new Intent("com.example.schedruleCheker");
         storeBoxIntent.setIdentifier(String.valueOf(mins));
 //        storeBoxIntent.putExtra("VALUE", mins);
 
-        int millis = (int) Math.round(mins * 60 * 1000);
+        long millis =  System.currentTimeMillis() +((int) Math.round(mins * 60 * 1000));
 
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, storeBoxIntent, PendingIntent.FLAG_MUTABLE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, millis, pi); //mins*60*1000
@@ -118,7 +119,7 @@ public class SchedruleCheker {
     private void remindNotif(String str) {
         TestNotification not = new TestNotification(msgTitle, str, "pack", MainActivity.mainContext);
         not.setAutoHide(120);
-        not.id=99;
+        not.id = 99;
         not.notifyNow();
     }
 

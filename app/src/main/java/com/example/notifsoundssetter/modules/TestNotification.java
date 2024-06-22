@@ -41,11 +41,14 @@ public class TestNotification {
     }
 
     public void notifyNow(){
+        try{
+            PendingIntent pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            mBuilder.setContentIntent(pi);
 
-        PendingIntent pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.setContentIntent(pi);
-
-        mNotificationManager.notify(id, mBuilder.build());
+            mNotificationManager.notify(id, mBuilder.build());
+        }catch (Exception r){
+            r.printStackTrace();
+        }
     }
 
     private void prepare_body(){
