@@ -9,7 +9,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -21,6 +23,8 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 
 import com.example.notifsoundssetter.modules.ActiveNotifsList;
 import com.example.notifsoundssetter.modules.ConfFile;
@@ -29,8 +33,17 @@ import com.example.notifsoundssetter.modules.PlaySound;
 import com.example.notifsoundssetter.modules.ScenariosSets;
 import com.example.notifsoundssetter.modules.SchedruleCheker;
 import com.example.notifsoundssetter.modules.TestNotification;
+import com.example.notifsoundssetter.modules.error_logs.UnexpectedCrashSaver;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -40,19 +53,29 @@ public class MainActivity extends AppCompatActivity {
     public static ConfFile confFile;
 
     public static MainActivity mainContext;
-    public static ActiveNotifsList activeNotifsList=new ActiveNotifsList();
+    public static ActiveNotifsList activeNotifsList = new ActiveNotifsList();
     SchedruleCheker schedruleCheker;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mainContext=this;
+
+        Thread.setDefaultUncaughtExceptionHandler(new UnexpectedCrashSaver(this));
+        UnexpectedCrashSaver.crashHandlerMenu(this);
+        try {
+            UnexpectedCrashSaver.writeErrorToFiles();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mainContext = this;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             askPermissions();
         }
 
         createFoldersIfNoExist();
         setContentView(R.layout.activity_main);
-        confFile=new ConfFile();
+        confFile = new ConfFile();
         try {
             confFile.readAll();
         } catch (Exception e) {
@@ -64,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
         buttons();
 
-        schedruleCheker= new SchedruleCheker(MainActivity.mainContext, activeNotifsList);
+        schedruleCheker = new SchedruleCheker(MainActivity.mainContext, activeNotifsList);
         schedruleCheker.start_check();
     }
 
@@ -111,15 +134,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    void buttons(){
+    void buttons() {
         Button buttonOne = (Button) findViewById(R.id.testNotif);
         buttonOne.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 Consumer<Object> inputMins = x -> {
-                    Map<String,String> map= (Map) x;
-                    new TestNotification("Title",map.get("text") , "pack",  mainContext).notifyNow();
+                    Map<String, String> map = (Map) x;
+                    new TestNotification("Title", map.get("text"), "pack", mainContext).notifyNow();
                 };
-                new InputText(null).show(mainContext,"Введите текст уведомления",inputMins);
+                new InputText(null).show(mainContext, "Введите текст уведомления", inputMins);
 
             }
         });
@@ -142,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         Button buttonSchedruleSound = (Button) findViewById(R.id.buttonSchedruleSound);
         buttonSchedruleSound.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-                ScenariosSets.schedruleSound(mainContext,schedruleCheker);
+                ScenariosSets.schedruleSound(mainContext, schedruleCheker);
             }
         });
 
@@ -154,9 +177,9 @@ public class MainActivity extends AppCompatActivity {
 //                intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
                 intent.setAction(Intent.ACTION_GET_CONTENT);
                 intent.setDataAndType(Uri.parse(Environment.getExternalStorageDirectory().getPath()
-                        +  File.separator + "notifications_conf" + File.separator), "file/*");
+                        + File.separator + "notifications_conf" + File.separator), "file/*");
                 intent.putExtra("android.provider.extra.INITIAL_URI", Uri.parse(Environment.getExternalStorageDirectory().getPath()
-                        +  File.separator + "notifications_conf" + File.separator));
+                        + File.separator + "notifications_conf" + File.separator));
 
 
 //                intent.setType("file/*");
@@ -174,12 +197,31 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button buttonTests = (Button) findViewById(R.id.buttonTests);
+        buttonTests.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+               String logs=  UnexpectedCrashSaver.getLogs();
+               new String();
+            }
+        });
+
+        Button buttonStacktrace = (Button) findViewById(R.id.buttonStacktrace);
+        buttonStacktrace.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                Intent myIntent = new Intent(MainActivity.this, Stacktrace.class);
+                mainContext.startActivity(myIntent);
+
+               new String();
+            }
+        });
+
     }
 
 
-    void createFoldersIfNoExist(){
-        if(!PlaySound.musicFolder.exists())PlaySound.musicFolder.mkdirs();
-        if(!ConfFile.confFolder.exists()) ConfFile.confFolder.mkdirs();
+    void createFoldersIfNoExist() {
+        if (!PlaySound.musicFolder.exists()) PlaySound.musicFolder.mkdirs();
+        if (!ConfFile.confFolder.exists()) ConfFile.confFolder.mkdirs();
+        if (!UnexpectedCrashSaver.errorsFolder.exists()) UnexpectedCrashSaver.errorsFolder.mkdirs();
 
 
     }
@@ -192,8 +234,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("samsung.myfiles.intent.extra.START_PATH",
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath());
             activity.startActivity(intent);
-        }
-        else activity.startActivity(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
+        } else activity.startActivity(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
     }
 
     public static boolean isSamsung() {
@@ -201,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
         if (manufacturer != null) return manufacturer.toLowerCase().equals("samsung");
         return false;
     }
+
 
 
 }
