@@ -1,10 +1,15 @@
 package com.example.notifsoundssetter;
 
+import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -19,12 +24,15 @@ import android.widget.Button;
 
 import com.example.notifsoundssetter.modules.ActiveNotifsList;
 import com.example.notifsoundssetter.modules.ConfFile;
+import com.example.notifsoundssetter.modules.InputText;
 import com.example.notifsoundssetter.modules.PlaySound;
 import com.example.notifsoundssetter.modules.ScenariosSets;
 import com.example.notifsoundssetter.modules.SchedruleCheker;
 import com.example.notifsoundssetter.modules.TestNotification;
 
 import java.io.File;
+import java.util.Map;
+import java.util.function.Consumer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static MainActivity mainContext;
     public static ActiveNotifsList activeNotifsList=new ActiveNotifsList();
+    SchedruleCheker schedruleCheker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +63,9 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
 
         buttons();
-        new SchedruleCheker(MainActivity.mainContext, activeNotifsList).start_check();
+
+        schedruleCheker= new SchedruleCheker(MainActivity.mainContext, activeNotifsList);
+        schedruleCheker.start_check();
     }
 
 
@@ -104,7 +115,12 @@ public class MainActivity extends AppCompatActivity {
         Button buttonOne = (Button) findViewById(R.id.testNotif);
         buttonOne.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-                TestNotification.showNotification("Title", "msg", "pack", null, mainContext);
+                Consumer<Object> inputMins = x -> {
+                    Map<String,String> map= (Map) x;
+                    new TestNotification("Title",map.get("text") , "pack",  mainContext).notifyNow();
+                };
+                new InputText(null).show(mainContext,"Введите текст уведомления",inputMins);
+
             }
         });
 
@@ -126,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
         Button buttonSchedruleSound = (Button) findViewById(R.id.buttonSchedruleSound);
         buttonSchedruleSound.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-                ScenariosSets.schedruleSound(mainContext);
+                ScenariosSets.schedruleSound(mainContext,schedruleCheker);
             }
         });
 
@@ -134,9 +150,18 @@ public class MainActivity extends AppCompatActivity {
         buttonOpenConfsFolder.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 Intent intent = new Intent();
+//                intent.setAction(Intent.ACTION_GET_CONTENT);
+//                intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
                 intent.setAction(Intent.ACTION_GET_CONTENT);
-                intent.setType("file/*");
-                intent.setData(Uri.fromFile(ConfFile.confFolder));
+                intent.setDataAndType(Uri.parse(Environment.getExternalStorageDirectory().getPath()
+                        +  File.separator + "notifications_conf" + File.separator), "file/*");
+                intent.putExtra("android.provider.extra.INITIAL_URI", Uri.parse(Environment.getExternalStorageDirectory().getPath()
+                        +  File.separator + "notifications_conf" + File.separator));
+
+
+//                intent.setType("file/*");
+//                intent.putExtra(EXTRA_INITIAL_URI, Uri.fromFile(ConfFile.confFolder));
+////                intent.setData(Uri.fromFile(ConfFile.confFolder));
                 startActivity(intent);
 //
 //                String path =ConfFile.confFolder.getAbsolutePath();
@@ -159,6 +184,23 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public static void openDownloads(@NonNull Activity activity) {
+        if (isSamsung()) {
+            Intent intent = activity.getPackageManager()
+                    .getLaunchIntentForPackage("com.sec.android.app.myfiles");
+            intent.setAction("samsung.myfiles.intent.action.LAUNCH_MY_FILES");
+            intent.putExtra("samsung.myfiles.intent.extra.START_PATH",
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath());
+            activity.startActivity(intent);
+        }
+        else activity.startActivity(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
+    }
+
+    public static boolean isSamsung() {
+        String manufacturer = Build.MANUFACTURER;
+        if (manufacturer != null) return manufacturer.toLowerCase().equals("samsung");
+        return false;
+    }
 
 
 }

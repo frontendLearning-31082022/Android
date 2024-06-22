@@ -17,7 +17,7 @@ public class InputText {
         if (data==null)this.data=new HashMap();
     }
 
-    void show(Context context, String title, Consumer<Object> onSumbit) {
+    public void show(Context context, String title, Consumer<Object> onSumbit) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(title);
 

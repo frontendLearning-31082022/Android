@@ -16,14 +16,40 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class TestNotification {
-    static int id=100;
+    public int id=100;
+    String title;
+    String message;
+    String pack;
+    Context context;
+    NotificationCompat.Builder mBuilder;
+    NotificationManager mNotificationManager;
+    Intent intent;
 
-    public static void showNotification(String title, String message, String pack, PendingIntent intentOfNotif,Context context ) {
+    public TestNotification(String title, String message, String pack, Context context) {
+        this.title = title;
+        this.message = message;
+        this.pack = pack;
+        this.context = context;
 
-        if (pack==null)pack="Null";
-        message = pack + "| " + message + "  " + new SimpleDateFormat("HH:mm:ss MM/dd/yyyy").format(new Date());
+        prepareText();
+        prepare_body();
+    }
 
-        NotificationManager mNotificationManager =
+    public void setAutoHide(int secs){
+        mBuilder.setAutoCancel(true);
+        mBuilder.setTimeoutAfter(secs*1000);
+    }
+
+    public void notifyNow(){
+
+        PendingIntent pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.setContentIntent(pi);
+
+        mNotificationManager.notify(id, mBuilder.build());
+    }
+
+    private void prepare_body(){
+        mNotificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel("YOUR_CHANNEL_ID",
@@ -32,39 +58,27 @@ public class TestNotification {
             channel.setDescription("YOUR_NOTIFICATION_CHANNEL_DESCRIPTION");
             mNotificationManager.createNotificationChannel(channel);
         }
+        id++;
+        mBuilder.setSmallIcon(R.drawable.icon);
+        mBuilder.setPriority(NotificationCompat.PRIORITY_MIN);
+    }
 
-//        Intent resultIntent = new Intent(this, NotificationActivity.class);
-//        resultIntent.putExtra("msg",message);
-//        PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent,
-//                PendingIntent.FLAG_UPDATE_CURRENT);
 
-        Intent intent = new Intent(context, TestNotification.class);
+    private void prepareText(){
+        if (pack==null)pack="Null";
+        message = pack + "| " + message + "  " + new SimpleDateFormat("HH:mm:ss MM/dd/yyyy").format(new Date());
+        intent = new Intent(context, TestNotification.class);
         intent.putExtra("msg", message);
         intent.putExtra("processName", pack);
         intent.putExtra("TitleMessage", title+message);
 //        intent.putExtra("intent", intent);
         String messageForNotif = message.replaceAll("^com\\.[A-z\\.]*.[^\\w|\\s]", "");
-
         BitmapFactory.Options options = new BitmapFactory.Options();
         Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), 1, options);
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, "YOUR_CHANNEL_ID")
-                .setSmallIcon(R.drawable.icon) // notification icon
+        mBuilder = new NotificationCompat.Builder(context, "YOUR_CHANNEL_ID")
                 .setContentTitle(title) // title for notification
-                .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setContentText(messageForNotif)// message for notification
-                .setAutoCancel(true)
-                .setTimeoutAfter(120000)
 //                .setContentIntent(resultPendingIntent)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(messageForNotif));
-
-
-        PendingIntent pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.setContentIntent(pi);
-
-        mNotificationManager.notify(id++, mBuilder.build());
-
-
-
-
     }
 }

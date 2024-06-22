@@ -69,7 +69,7 @@ public class ScenariosSets {
 
     }
 
-    public static void schedruleSound(Context context) {
+    public static void schedruleSound(Context context, SchedruleCheker schedruleCheker) {
         Consumer<Object> writeConf = x -> {
             Map data= (Map) x;
             data.put("mins_repeat",data.get("text"));
@@ -81,6 +81,7 @@ public class ScenariosSets {
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
+            schedruleCheker.restart();
 
         };
 
