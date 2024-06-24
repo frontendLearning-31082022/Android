@@ -97,9 +97,11 @@ public class SchedruleCheker {
                     : extras.get(Notification.EXTRA_BIG_TEXT).toString();
             String title = extras.get(Notification.EXTRA_TITLE) == null ? ""
                     : extras.get(Notification.EXTRA_TITLE).toString();
+            String text = extras.get(Notification.EXTRA_TEXT) == null ? ""
+                    : extras.get(Notification.EXTRA_TEXT).toString();
             if (title.indexOf(msgTitle) > -1) return "";
 
-            return title + bigTExt;
+            return title + bigTExt+text;
         }).collect(Collectors.toList());
 
         for (String str : containsWordList) {
